@@ -169,6 +169,8 @@ class S3Handler(GitRemoteHandler):
 
 
 if __name__ == '__main__':
+	loghandler = logbook.FileHandler(os.environ['TMPDIR'] + 'git-remote-s3.log', encoding = 'utf-8')
+	loghandler.push_application()
 	try:
 		S3Handler().run()
 	except HandlerException, e:

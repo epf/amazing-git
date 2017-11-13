@@ -150,7 +150,10 @@ class S3ObjectStore(PackBasedObjectStore, S3PrefixFS):
 			finally:
 				os.remove(path)
 				log.debug('Removed temporary file %s' % path)
-		return f, commit
+		def abort():
+		    f.close()
+		    os.remove(path)
+		return f, commit, abort
 
 	def _create_pack(self, path):
 		def data_loader():
@@ -306,6 +309,14 @@ class S3Repo(BaseRepo):
 	def _init(self):
 		log.debug('Initializing S3 repository')
 		self.refs.set_symbolic_ref('HEAD', 'refs/heads/master')
+
+	def fetch_and_keep(self, target, determine_wants=None, progress=None, msg=None):
+		refs = self.fetch(target, determine_wants, progress)
+
+		# I need to call Pack.keep(msg) here but I'm not yet sure how to get a Pack from refs
+		keepfile = None
+
+		return refs, keepfile
 
 
 def calc_object_path(prefix, hexsha):
